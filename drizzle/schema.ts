@@ -25,4 +25,68 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Railway Company - 鉄道事業者
+ */
+export const companies = mysqlTable("companies", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  nameJa: varchar("nameJa", { length: 255 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Company = typeof companies.$inferSelect;
+export type InsertCompany = typeof companies.$inferInsert;
+
+/**
+ * Train Type - 車両形式
+ */
+export const trainTypes = mysqlTable("trainTypes", {
+  id: int("id").autoincrement().primaryKey(),
+  companyId: int("companyId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TrainType = typeof trainTypes.$inferSelect;
+export type InsertTrainType = typeof trainTypes.$inferInsert;
+
+/**
+ * Formation - 編成（具体的な編成）
+ */
+export const formations = mysqlTable("formations", {
+  id: int("id").autoincrement().primaryKey(),
+  trainTypeId: int("trainTypeId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Formation = typeof formations.$inferSelect;
+export type InsertFormation = typeof formations.$inferInsert;
+
+/**
+ * Photo - 写真
+ */
+export const photos = mysqlTable("photos", {
+  id: int("id").autoincrement().primaryKey(),
+  formationId: int("formationId").notNull(),
+  userId: int("userId").notNull(),
+  imageUrl: text("imageUrl").notNull(),
+  imageKey: varchar("imageKey", { length: 512 }).notNull(),
+  thumbnailUrl: text("thumbnailUrl"),
+  title: varchar("title", { length: 255 }),
+  description: text("description"),
+  shootDate: timestamp("shootDate"),
+  location: varchar("location", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Photo = typeof photos.$inferSelect;
+export type InsertPhoto = typeof photos.$inferInsert;

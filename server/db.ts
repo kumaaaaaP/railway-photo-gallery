@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, companies, InsertCompany, trainTypes, InsertTrainType, formations, InsertFormation, photos, InsertPhoto } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,154 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ============ Company Queries ============
+export async function getCompanies() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(companies).orderBy(companies.name);
+}
+
+export async function getCompanyById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(companies).where(eq(companies.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createCompany(data: InsertCompany) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(companies).values(data);
+  return result;
+}
+
+export async function updateCompany(id: number, data: Partial<InsertCompany>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(companies).set(data).where(eq(companies.id, id));
+}
+
+export async function deleteCompany(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(companies).where(eq(companies.id, id));
+}
+
+// ============ TrainType Queries ============
+export async function getTrainTypesByCompanyId(companyId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(trainTypes).where(eq(trainTypes.companyId, companyId)).orderBy(trainTypes.name);
+}
+
+export async function getTrainTypeById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(trainTypes).where(eq(trainTypes.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createTrainType(data: InsertTrainType) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(trainTypes).values(data);
+}
+
+export async function updateTrainType(id: number, data: Partial<InsertTrainType>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(trainTypes).set(data).where(eq(trainTypes.id, id));
+}
+
+export async function deleteTrainType(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(trainTypes).where(eq(trainTypes.id, id));
+}
+
+// ============ Formation Queries ============
+export async function getFormationsByTrainTypeId(trainTypeId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(formations).where(eq(formations.trainTypeId, trainTypeId)).orderBy(formations.name);
+}
+
+export async function getFormationById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(formations).where(eq(formations.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createFormation(data: InsertFormation) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(formations).values(data);
+}
+
+export async function updateFormation(id: number, data: Partial<InsertFormation>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(formations).set(data).where(eq(formations.id, id));
+}
+
+export async function deleteFormation(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(formations).where(eq(formations.id, id));
+}
+
+// ============ Photo Queries ============
+export async function getPhotosByFormationId(formationId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(photos).where(eq(photos.formationId, formationId)).orderBy(photos.createdAt);
+}
+
+export async function getPhotoById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(photos).where(eq(photos.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createPhoto(data: InsertPhoto) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(photos).values(data);
+}
+
+export async function updatePhoto(id: number, data: Partial<InsertPhoto>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(photos).set(data).where(eq(photos.id, id));
+}
+
+export async function deletePhoto(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(photos).where(eq(photos.id, id));
+}
+
+export async function getPhotosByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(photos).where(eq(photos.userId, userId)).orderBy(photos.createdAt);
+}
+
+// ============ Helper: Get formation with hierarchy ============
+export async function getFormationWithHierarchy(formationId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const formation = await getFormationById(formationId);
+  if (!formation) return undefined;
+
+  const trainType = await getTrainTypeById(formation.trainTypeId);
+  if (!trainType) return undefined;
+
+  const company = await getCompanyById(trainType.companyId);
+  if (!company) return undefined;
+
+  return { formation, trainType, company };
+}
